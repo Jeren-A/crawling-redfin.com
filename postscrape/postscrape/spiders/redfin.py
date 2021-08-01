@@ -6,7 +6,7 @@ class RedfinSpider(scrapy.Spider):
     name = 'redfin'
     allowed_domains = ['redfin.com']
     
-    start_urls = ['http://www.redfin.com/']
+    start_urls = ['http://redfin.com/']
     #handle_httpstatus_list = [301]
 
 
