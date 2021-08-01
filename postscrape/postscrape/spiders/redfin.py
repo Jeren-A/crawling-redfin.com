@@ -11,12 +11,13 @@ class RedfinSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        pass
+      
        
-        # city = response.xpath('//*[@class="city"]/a/href()').extract()
-        # state = response.xpath('//*[@class = "state"]/a/href()').extract()
-
+        #city = response.xpath('//*[@class="city"]/a/@href()').extract()
+        #state = response.xpath('//*[@id="content"]').extract()
+  
+        pass
         # yield {
-        #     'cities': city, 'states': state
+        #  'states': state
         # }
 
