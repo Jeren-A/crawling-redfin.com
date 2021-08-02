@@ -44,6 +44,7 @@ class SiteMapManager:
             print(('-' * curr_indent)  + 'Outgoing Urls:')
             for outgoing_url in self.links[curr_url]:
                 print(((curr_indent + indent) * '-') + outgoing_url)
+                q.append(outgoing_url)
                 next_level_size += 1
 
             if curr_level_size == 0:
