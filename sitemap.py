@@ -2,6 +2,10 @@ from collections import defaultdict, deque
 
 
 class SiteMapManager:
+    """
+    TODO: Test this class
+    TODO: Make this class thread safe
+    """
 
     def __init__(self, base_url=None: str) -> None:
         self.base_url = base_url
