@@ -60,7 +60,7 @@ def crawlWebpage():
     url = input("Please enter a URL to crawl: ")
 
     headers = {
-        'User-Agent': 'Mozilla/5.0'
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     }
 
     # TODO We also need to ask the user to give us address of the house if this is a link for a house
@@ -69,8 +69,9 @@ def crawlWebpage():
     s = BeautifulSoup(r.content, "html.parser").encode("utf-8")
     # s = BeautifulSoup(r.text())
     print(s)
+    
 
-    t = s.find('div', {'class':'statsValue'})
+    #t = s.find('div', {'class':'statsValue'})
     
 
  
