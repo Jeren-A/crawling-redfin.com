@@ -7,9 +7,7 @@ import string
 from sitemap import SiteMapManager
 
 
-def random_url(base_url: str = None) -> str:
-    if not base_url:
-        base_url = 'http://test.com'
+def random_url(base_url: str = 'http://test.com') -> str:
     return base_url + '/' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
 
