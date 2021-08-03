@@ -1,4 +1,5 @@
 from collections import defaultdict, deque
+from typing import Set
 
 
 class SiteMapManager:
@@ -7,15 +8,27 @@ class SiteMapManager:
     TODO: Make this class thread safe
     """
 
-    def __init__(self, base_url=None: str) -> None:
+    def __init__(self, base_url: str = None):
         self.base_url = base_url
         self.links = defaultdict(set)
+        self.dead_links = set()
         self.assets = defaultdict(set)
 
-    
+    def get_outgoing_links(self, url: str) -> Set[str]:
+        return self.links[url]
+
+    def get_assets(self, url: str) -> Set[str]:
+        return self.assets[url]
+
+    def get_dead_links(self) -> Set[str]:
+        return self.dead_links
+
     def add_url_connection(self, url: str, outgoing_url: str) -> None:
         if not self.base_url: self.base_url = url
         self.links[url].add(outgoing_url)
+
+    def add_dead_link(self, dead_link: str) -> None:
+        self.dead_links.add(dead_link)
     
     def add_asset_connection(self, url: str, asset_link: str) -> None:
         if not self.base_url: self.base_url = url
@@ -51,5 +64,9 @@ class SiteMapManager:
                 curr_indent += indent
                 curr_indent = next_level_size
                 next_level_size = 0
+
+    def print_dead_links(self):
+        print('Dead links for this site:')
+        print(*self.dead_links, sep='\n')
 
 
