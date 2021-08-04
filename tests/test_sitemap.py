@@ -73,8 +73,6 @@ def test_print_sitemap(mocked_print, sitemap_manager):
                 assets[i][j]
             )
 
-
-
     indent = random.randint(2, 4)
     sitemap_manager.print_sitemap(indent=indent)
     # Make sure that each link is printed with proper indent
