@@ -1,3 +1,4 @@
+#import libraries
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urljoin
@@ -6,6 +7,9 @@ import threading
 import queue
 from bs4 import BeautifulSoup
 from sitemap import SiteMapManager
+
+
+
 
 class Menu:
     def __init__(self, name, items=None):
@@ -27,6 +31,9 @@ class Menu:
         for item in self.items:
             item.draw()
 
+
+
+
 class Item:
     def __init__(self, name, function, parent=None):
         self.name = name
@@ -40,8 +47,6 @@ class Item:
     def draw(self):
         # might be more complex later, better use a method.
         print("    " + self.name)
-
-
 class Crawler(threading.Thread):
     def __init__(self, base_url, links_to_crawl, visited_links, inaccessible_links, url_lock):
         threading.Thread.__init__(self)
@@ -127,7 +132,7 @@ def crawlWebpage():
     number_of_threads = input("Please Enter number of Threads: ")
     # TODO validate input
 
-    scrapePage(url)
+    getElements(url)
 
     links_to_crawl = queue.Queue()
     url_lock = threading.Lock()
@@ -154,8 +159,7 @@ def crawlWebpage():
     print(f"Total Number of Errornous links: {len(inaccessible_links)}")
 
 
-def scrapePage(url):
-
+def getElements(url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     }
@@ -163,7 +167,7 @@ def scrapePage(url):
     r = requests.get(url, headers=headers)
     s = BeautifulSoup(r.content, "html.parser")
     address = s.find('h1', class_='homeAddress-variant').get_text()
-    print("adress is ", address)
+    answerMap['address'] = address
 
     info_div = s.find('div', class_= 'home-main-stats-variant')
     
@@ -171,15 +175,20 @@ def scrapePage(url):
     beds = info_div.find('div', class_= 'stat-block beds-section').get_text()
     baths = info_div.find('div', class_= 'stat-block baths-section').get_text()
     size = info_div.find('div', class_= 'stat-block sqft-section').get_text()
-    print(price, beds, baths, size)
+    answerMap['price'] = price
+    answerMap['beds'] = beds
+    answerMap['baths'] = baths
+    answerMap['size'] = size  
 
     agentInfo = s.find('div', class_='agent-info-item').get_text()
     owner = agentInfo.find('div', class_='agent-basic-details font-color-gray-dark').get_text()
     phone = agentInfo.find('p', class_='phone-numbers').get_text()
     email = agentInfo.find('a', class_='phone-number-entry').get_text()
-
-    print('Agent info: ', owner, phone, email)
-
+    
+    answerMap['agentName'] = owner
+    answerMap['agentPhone'] = phone
+    answerMap['agentEmail'] = email
+    
 
 def drawSitemap():
     siteMapManager.print_sitemap()
