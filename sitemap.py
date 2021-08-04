@@ -40,16 +40,16 @@ class SiteMapManager:
         print((curr_indent * '-') + curr_link)
 
         if not self._assets[curr_link]:
-            print(((curr_indent) * '-') + 'There is no assets for this link!')
+            print((curr_indent * '-') + 'There is no assets for this link!')
         else:
-            print(((curr_indent) * '-') + 'Assets:')
+            print((curr_indent * '-') + 'Assets:')
             for asset in self._assets[curr_link]:
                 print(((curr_indent + indent) * '-') + asset)
 
         if not self._links[curr_link]:
-            print(((curr_indent) * '-') + 'There is no outgoing links!')
+            print((curr_indent * '-') + 'There is no outgoing links!')
         else:
-            print(((curr_indent) * '-') + 'Outgoing Links:')
+            print((curr_indent * '-') + 'Outgoing Links:')
             for link in self._links[curr_link]:
                 self._print_sitemap_helper(visited_links, link, curr_indent + indent, indent=indent)
 
