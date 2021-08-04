@@ -6,7 +6,7 @@
 - `pip install -r requirements.txt`
 - `./main.py` 
 
-### How to run the tests*
+### How to run the tests
 
 - Run the bottom command on terminal:
 - `pytest tests`
