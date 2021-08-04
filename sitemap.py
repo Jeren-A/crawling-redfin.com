@@ -33,27 +33,30 @@ class SiteMapManager:
         if not self._base_url: self._base_url = url
         self._assets[url].add(asset_link)
 
-    def _print_sitemap_helper(self, curr_link, curr_indent, indent=2):
+    def _print_sitemap_helper(self, visited_links: set, curr_link: str, curr_indent: int, indent: int = 2):
+        if curr_link in visited_links:
+            return
+        visited_links.add(curr_link)
         print((curr_indent * '-') + curr_link)
 
         if not self._assets[curr_link]:
-            print('There is no assets for this link!')
+            print(((curr_indent) * '-') + 'There is no assets for this link!')
         else:
-            print('Assets:')
+            print(((curr_indent) * '-') + 'Assets:')
             for asset in self._assets[curr_link]:
                 print(((curr_indent + indent) * '-') + asset)
 
         if not self._links[curr_link]:
-            print('There is no outgoing links!')
+            print(((curr_indent) * '-') + 'There is no outgoing links!')
         else:
-            print('Outgoing Links:')
+            print(((curr_indent) * '-') + 'Outgoing Links:')
             for link in self._links[curr_link]:
-                self._print_sitemap_helper(link, curr_indent + indent, indent=indent)
+                self._print_sitemap_helper(visited_links, link, curr_indent + indent, indent=indent)
 
     def print_sitemap(self, indent=2) -> None:
         if not self._base_url:
             raise Exception('Cannot print the SiteMap as it does not have a base url!')
-        self._print_sitemap_helper(self._base_url, 0, indent=indent)
+        self._print_sitemap_helper(set(), self._base_url, 0, indent=indent)
 
     def print_dead_links(self):
         print('Dead links for this site:')

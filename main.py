@@ -7,6 +7,7 @@ import threading
 import queue
 from bs4 import BeautifulSoup
 from sitemap import SiteMapManager
+import datetime
 
 class Menu:
     def __init__(self, name, items=None):
@@ -41,6 +42,7 @@ class Item:
     def draw(self):
         # might be more complex later, better use a method.
         print("    " + self.name)
+
 class Crawler(threading.Thread):
     def __init__(self, base_url, links_to_crawl, visited_links, inaccessible_links, url_lock):
         threading.Thread.__init__(self)
@@ -129,7 +131,7 @@ def crawlWebpage():
         number_of_threads = input("Please Enter number of Threads: ")
 
 
-    #getElements(url)
+    getElements(url)
 
     links_to_crawl = queue.Queue()
     url_lock = threading.Lock()
@@ -155,6 +157,9 @@ def crawlWebpage():
     print(f"Total Number of pages visited are {len(visited_links)}")
     print(f"Total Number of Errornous links: {len(inaccessible_links)}")
 
+def key_allocation(arr, val):
+    for i in arr:
+        answerMap[i] = val 
 
 def getElements(url):
     headers = {
@@ -163,8 +168,11 @@ def getElements(url):
 
     r = requests.get(url, headers=headers)
     s = BeautifulSoup(r.content, "html.parser")
+    
     address = s.find('h1', class_='homeAddress-variant').get_text()
-    answerMap['address'] = address
+    address_array = ['address', 'location', 'where', 'place', 'site']
+    key_allocation(address_array, address)
+
 
     info_div = s.find('div', class_= 'home-main-stats-variant')
     
@@ -172,46 +180,58 @@ def getElements(url):
     beds = info_div.find('div', class_= 'stat-block beds-section').get_text()
     baths = info_div.find('div', class_= 'stat-block baths-section').get_text()
     size = info_div.find('div', class_= 'stat-block sqft-section').get_text()
-    answerMap['price'] = price
-    answerMap['beds'] = beds
-    answerMap['baths'] = baths
-    answerMap['size'] = size  
 
-    agentInfo = s.find('div', class_='agent-info-item').get_text()
+    price_array = ['price', 'cost', 'fee', 'payment', 'amount', 'worth', 'how much']
+    key_allocation(price_array, price)
+
+    answerMap['bed'] = beds
+    answerMap['bath']=baths
+
+    size_array = ['size', 'dimension', 'width', 'capacity']
+    key_allocation(size_array, size)
+
+
+    agentInfo = s.find('div', class_='agent-info-item')
     owner = agentInfo.find('div', class_='agent-basic-details font-color-gray-dark').get_text()
     phone = agentInfo.find('p', class_='phone-numbers').get_text()
     email = agentInfo.find('a', class_='phone-number-entry').get_text()
     
-    answerMap['agentName'] = owner
-    answerMap['agentPhone'] = phone
-    answerMap['agentEmail'] = email
+
+    owner_array=['owner', 'agent', 'number', 'who']
+    key_allocation(owner_array, owner)
+
+    answerMap['contact'] = "phone number "+phone+"  "+"email is "+email
+    answerMap['phone'] = phone
+    answerMap['number'] = phone
+    answerMap['email'] = email
     
+
+    keyDetails = s.find('div', class_='keyDetailsList')
+    keyDetailsList = keyDetails.find_all('div')
+    yearBuilt = keyDetailsList[3].find('span', class_='header font-color-gray-light inline-block').get_text()
+    
+    now = datetime.datetime.now()
+    houseAge = now.year - yearBuilt
+    answerMap['year'] = yearBuilt
+    answerMap['old'] = houseAge
+    answerMap['age'] = houseAge
 
 def drawSitemap():
     siteMapManager.print_sitemap()
     return
 
-deadLinks = []
 def outputDeadLinks():
-    # We can have a list of dead links for the whole crawling process
-    for deadLink in deadLinks:
-        print(deadLink)
+    siteMapManager.print_dead_links()
+    return
 
-# to answer questions
-# 1 - scrape only first webpage and retrieve certain information from that page whose location on page is previously known
-    # we can retrieve those elements by locating them on browser devtools and calling their paths on code
-# 2 - put these certain information to a map where key is preknown information keyword, and value is scraped information
-# Example = {["beds":3], ["price":1540000]}
 
 def answerWHQuestion():
     WHQuestion = input("Please enter a WH question: ").lower()
-    #i suggest to have menu for this as well, like: 1. What is the contact info of the owner or 2. Where is the estate located? 
-    # Who is the ownere of the house? ....
-    
-    #if WHQuestion
-    # If where is included -> return address taken from user
-    # If what or which or how is included -> for all(?) words in the question return value of keyword in map if exists
-    # if old/year/age is included, return age of house or its built year
+
+    for keyword in answerMap:
+        if keyword in WHQuestion:
+            print('Your answer: ', answerMap['keyword'])
+            break
 
 def answerYesNoQuestion():
     yesNoQuestion = input("Please enter a yes/no question: ")
@@ -231,7 +251,7 @@ yesNoQuestionItem = Item("5. Ask a yes/no question", answerYesNoQuestion, main)
 exitItem = Item("6. Exit program", exitProgram, main)
 
 def isInputValid(userInput):
-    while userInput.isdigit() == False or int(userInput)<0 or int(userInput)>6:
+    while userInput.isdigit() == False or int(userInput)<1 or int(userInput)>6:
         print("Wrong choice")
         userInput = input("Please enter your choice: ")
     return userInput
@@ -258,6 +278,6 @@ while(userInput != 6 ): # 6 can be defined at top
 
     main.draw()
     userInput = input("Please enter your choice: ") #check whether user inputs integer or not
-    userInput = isInputValid(userInput)
+    userInput = int(isInputValid(userInput))
 
 
