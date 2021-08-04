@@ -8,7 +8,8 @@ import queue
 from bs4 import BeautifulSoup
 from sitemap import SiteMapManager
 import datetime
-
+import yake
+yesNoText = "test"
 class Menu:
     def __init__(self, name, items=None):
         self.name = name
@@ -103,7 +104,7 @@ class Crawler(threading.Thread):
             self.url_lock.acquire()
             url = self.links_to_crawl.get()
             self.url_lock.release()
-            if url is None or len(self.visited_links) > 10:
+            if url is None or len(self.visited_links) > 5:
                 break
             self.url_lock.acquire()
             print('Crawling: ', url)
@@ -121,6 +122,8 @@ class Crawler(threading.Thread):
 
 siteMapManager = SiteMapManager()
 answerMap = {}
+yesNoMap = {}
+
 
 def crawlWebpage():
     url = input("Please enter a URL to crawl: ")
@@ -182,39 +185,50 @@ def getElements(url):
     size = info_div.find('div', class_= 'stat-block sqft-section').get_text()
 
     price_array = ['price', 'cost', 'fee', 'payment', 'amount', 'worth', 'how much']
-    key_allocation(price_array, price)
+    key_allocation(price_array, price[:-5])
 
-    answerMap['bed'] = beds
-    answerMap['bath']=baths
+    answerMap['bed'] = beds[:-4]+" beds"
+    answerMap['bath']=baths[:-5]+" baths"
 
     size_array = ['size', 'dimension', 'width', 'capacity']
-    key_allocation(size_array, size)
+    key_allocation(size_array, size[:-5] + " Sq Ft")
 
 
     agentInfo = s.find('div', class_='agent-info-item')
-    owner = agentInfo.find('div', class_='agent-basic-details font-color-gray-dark').get_text()
-    phone = agentInfo.find('p', class_='phone-numbers').get_text()
-    email = agentInfo.find('a', class_='phone-number-entry').get_text()
+    
+    owner = agentInfo.find('div', class_='agent-basic-details font-color-gray-dark')
+    owner_clean = owner.select("span a")[0].get_text()
+    
+    phoneElement = agentInfo.find('p', class_='phone-numbers')
+    if phoneElement is not None:
+        answerMap['phone'] = phoneElement.get_text()
+        answerMap['number'] = phoneElement.get_text()
+    
+    
+    emailElement = agentInfo.find('a', class_='phone-number-entry')
+    if emailElement is not None:
+        answerMap['email'] = emailElement.get_text()
+        
+    if phoneElement is not None and emailElement is not None:
+        answerMap['contact'] = "phone number "+phoneElement.get_text() + "  " + "email is "+emailElement.get_text()
+    
+    owner_array=['owner', 'agent', 'who']
+    key_allocation(owner_array, owner_clean)
     
 
-    owner_array=['owner', 'agent', 'number', 'who']
-    key_allocation(owner_array, owner)
-
-    answerMap['contact'] = "phone number "+phone+"  "+"email is "+email
-    answerMap['phone'] = phone
-    answerMap['number'] = phone
-    answerMap['email'] = email
+    # keyDetails = s.find_all('div', class_='keyDetailsList')
+    # keyDetailsList = keyDetails.find_all('div', class_ = 'keyDetail font-weight-roman font-size-base')
+    # print('keyDetails ', keyDetails)
+    # yearBuilt = keyDetailsList[3].find('span', class_='header font-color-gray-light inline-block').get_text()
     
+    # now = datetime.datetime.now()
+    # houseAge = now.year - int(yearBuilt)
+    # answerMap['year'] = yearBuilt
+    # answerMap['old'] = houseAge
+    # answerMap['age'] = houseAge
 
-    keyDetails = s.find('div', class_='keyDetailsList')
-    keyDetailsList = keyDetails.find_all('div')
-    yearBuilt = keyDetailsList[3].find('span', class_='header font-color-gray-light inline-block').get_text()
-    
-    now = datetime.datetime.now()
-    houseAge = now.year - yearBuilt
-    answerMap['year'] = yearBuilt
-    answerMap['old'] = houseAge
-    answerMap['age'] = houseAge
+    yesNoText = s.find('div', class_= 'amenities-container').get_text().lower()
+    print(yesNoText)
 
 def drawSitemap():
     siteMapManager.print_sitemap()
@@ -227,15 +241,41 @@ def outputDeadLinks():
 
 def answerWHQuestion():
     WHQuestion = input("Please enter a WH question: ").lower()
-
+    isAnswered = False
     for keyword in answerMap:
         if keyword in WHQuestion:
-            print('Your answer: ', answerMap['keyword'])
+            isAnswered = True
+            print('Your answer: ', answerMap[keyword])
             break
+    if not isAnswered:
+        print('Sorry, I do not know the answer for that question. ')
 
 def answerYesNoQuestion():
     yesNoQuestion = input("Please enter a yes/no question: ")
-    # TODO find yes no questions that we can answer, they also need to be taken from kind of a map which should be filled while scraping first url 
+
+    language = "en"
+    max_ngram_size = 3
+    deduplication_threshold = 0.9
+    numOfKeywords = 5
+    custom_kw_extractor = yake.KeywordExtractor(lan=language, n=max_ngram_size, dedupLim=deduplication_threshold, top=numOfKeywords, features=None)
+    keywords = custom_kw_extractor.extract_keywords(yesNoQuestion)
+    
+    isNo = True
+    
+
+    print(type(yesNoText))
+    print(yesNoText)
+    
+
+    for kw in keywords:
+        print('Keyword:', kw[0])
+        if yesNoText.find(kw[0]) != -1 :
+            print('Answer is YES')
+        else:
+            print('Answer is NO')
+
+    #if isNo:
+     #   print('Answer is NO')
 
 def exitProgram():
     return
