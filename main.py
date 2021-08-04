@@ -9,7 +9,9 @@ from bs4 import BeautifulSoup
 from sitemap import SiteMapManager
 import datetime
 import yake
-yesNoText = "test"
+
+
+yesNoText = ""      # global variabble to be used for yes/no questions
 class Menu:
     def __init__(self, name, items=None):
         self.name = name
@@ -36,26 +38,25 @@ class Item:
         self.function = function
         self.parent = parent
         if parent:
-            parent.add_item(self) # use add_item instead of append, since who
-                                  # knows what kind of complex code you'll have
-                                  # in add_item() later on.
+            parent.add_item(self)
 
     def draw(self):
-        # might be more complex later, better use a method.
         print("    " + self.name)
 
-class Crawler(threading.Thread):
-    def __init__(self, base_url, links_to_crawl, visited_links, inaccessible_links, url_lock):
+class Crawler(threading.Thread):    # crawls all internal links by implementing multithreading
+
+    def __init__(self, base_url, links_to_crawl, visited_links, inaccessible_links, url_lock): #constructor
         threading.Thread.__init__(self)
         print(f"Web Crawler worker {threading.current_thread()} has Started")
-        self.domain = urlparse(base_url).netloc
-        self.base_url = base_url # main url to crawl
-        self.links_to_crawl = links_to_crawl # this is a Queue.queue which will be populated with links that are yet to be crawled.
-        self.visited_links = visited_links # visited urls
-        self.inaccessible_links = inaccessible_links # urls throwing errors
-        self.url_lock = url_lock # to keep our threads safe
 
-    def download_url(self, url):
+        self.domain = urlparse(base_url).netloc
+        self.base_url = base_url     # main url to crawl
+        self.links_to_crawl = links_to_crawl # this is a Queue.queue which will be populated with links that are yet to be crawled
+        self.visited_links = visited_links # visited urls
+        self.inaccessible_links = inaccessible_links # dead links
+        self.url_lock = url_lock  # to keep our threads safe
+
+    def download_url(self, url): # read a url 
         headers = {
             'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
         }
@@ -70,7 +71,6 @@ class Crawler(threading.Thread):
             if path is None or path.startswith('#') or self.domain != urlparse(path).netloc:
                 continue
             siteMapManager.add_url_connection(url, path)
-            #TODO: add this path as (url, path) to Gokberk's sitemap manager's outgoing urls map
             yield path
 
     def add_asset_links(self, url, html):
@@ -85,7 +85,6 @@ class Crawler(threading.Thread):
                 assetLink = hrefExists
             else:
                 continue
-            #print('Asset link = ', assetLink)
             siteMapManager.add_asset_connection(url, assetLink)
 
     def add_url_to_visit(self, url):
@@ -112,7 +111,6 @@ class Crawler(threading.Thread):
             try:
                 self.crawl(url)
             except Exception as e:
-                #TODO: Add this url to dead links here using Gokberk's sitemap manager dead links list
                 siteMapManager.add_dead_link(url)
                 print('Failed to crawl: ', e)
                 self.inaccessible_links.add(url)
@@ -160,11 +158,15 @@ def crawlWebpage():
     print(f"Total Number of pages visited are {len(visited_links)}")
     print(f"Total Number of Errornous links: {len(inaccessible_links)}")
 
+
+#assigns key-words to -answerMap- (used to answer WH questions)
 def key_allocation(arr, val):
     for i in arr:
         answerMap[i] = val 
 
-def getElements(url):
+def getElements(url):    #getting possible elements from the provided page (ex: price, contact info, and etc)
+   
+    #getting data from url
     headers = {
         'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     }
@@ -172,11 +174,12 @@ def getElements(url):
     r = requests.get(url, headers=headers)
     s = BeautifulSoup(r.content, "html.parser")
     
+    #extracting address
     address = s.find('h1', class_='homeAddress-variant').get_text()
     address_array = ['address', 'location', 'where', 'place', 'site']
     key_allocation(address_array, address)
 
-
+    #extracting price, beds, baths and size info
     info_div = s.find('div', class_= 'home-main-stats-variant')
     
     price = info_div.find('div', class_= 'stat-block price-section').get_text()
@@ -193,12 +196,13 @@ def getElements(url):
     size_array = ['size', 'dimension', 'width', 'capacity']
     key_allocation(size_array, size[:-5] + " Sq Ft")
 
-
+    #extracting info about owner
     agentInfo = s.find('div', class_='agent-info-item')
     
     owner = agentInfo.find('div', class_='agent-basic-details font-color-gray-dark')
     owner_clean = owner.select("span a")[0].get_text()
     
+    #extracting contact info
     phoneElement = agentInfo.find('p', class_='phone-numbers')
     if phoneElement is not None:
         answerMap['phone'] = phoneElement.get_text()
@@ -216,19 +220,10 @@ def getElements(url):
     key_allocation(owner_array, owner_clean)
     
 
-    # keyDetails = s.find_all('div', class_='keyDetailsList')
-    # keyDetailsList = keyDetails.find_all('div', class_ = 'keyDetail font-weight-roman font-size-base')
-    # print('keyDetails ', keyDetails)
-    # yearBuilt = keyDetailsList[3].find('span', class_='header font-color-gray-light inline-block').get_text()
-    
-    # now = datetime.datetime.now()
-    # houseAge = now.year - int(yearBuilt)
-    # answerMap['year'] = yearBuilt
-    # answerMap['old'] = houseAge
-    # answerMap['age'] = houseAge
-
+    #text t
+    global yesNoText
     yesNoText = s.find('div', class_= 'amenities-container').get_text().lower()
-    print(yesNoText)
+    #print(yesNoText)
 
 def drawSitemap():
     siteMapManager.print_sitemap()
@@ -261,21 +256,13 @@ def answerYesNoQuestion():
     keywords = custom_kw_extractor.extract_keywords(yesNoQuestion)
     
     isNo = True
-    
-
-    print(type(yesNoText))
-    print(yesNoText)
-    
-
     for kw in keywords:
-        print('Keyword:', kw[0])
-        if yesNoText.find(kw[0]) != -1 :
-            print('Answer is YES')
-        else:
-            print('Answer is NO')
-
-    #if isNo:
-     #   print('Answer is NO')
+        if kw[0] in yesNoText: 
+            print('YES')
+            isNo = False
+            break
+    if isNo:
+        print('NO')
 
 def exitProgram():
     return
