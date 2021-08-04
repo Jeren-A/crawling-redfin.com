@@ -129,7 +129,7 @@ def crawlWebpage():
         number_of_threads = input("Please Enter number of Threads: ")
 
 
-    getElements(url)
+    #getElements(url)
 
     links_to_crawl = queue.Queue()
     url_lock = threading.Lock()
