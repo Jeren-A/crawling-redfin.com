@@ -8,9 +8,6 @@ import queue
 from bs4 import BeautifulSoup
 from sitemap import SiteMapManager
 
-
-
-
 class Menu:
     def __init__(self, name, items=None):
         self.name = name
@@ -30,9 +27,6 @@ class Menu:
         print(self.name)
         for item in self.items:
             item.draw()
-
-
-
 
 class Item:
     def __init__(self, name, function, parent=None):
@@ -130,7 +124,10 @@ def crawlWebpage():
     url = input("Please enter a URL to crawl: ")
     
     number_of_threads = input("Please Enter number of Threads: ")
-    # TODO validate input
+    while number_of_threads.isdigit() == False:
+        print("Number of Threads should be an integer ")
+        number_of_threads = input("Please Enter number of Threads: ")
+
 
     getElements(url)
 
@@ -207,8 +204,11 @@ def outputDeadLinks():
 # Example = {["beds":3], ["price":1540000]}
 
 def answerWHQuestion():
-    WHQuestion = input("Please enter a WH question: ")
-    # TODO We need a map to store keywords and its answers, it should be filled when scraping the first url
+    WHQuestion = input("Please enter a WH question: ").lower()
+    #i suggest to have menu for this as well, like: 1. What is the contact info of the owner or 2. Where is the estate located? 
+    # Who is the ownere of the house? ....
+    
+    #if WHQuestion
     # If where is included -> return address taken from user
     # If what or which or how is included -> for all(?) words in the question return value of keyword in map if exists
     # if old/year/age is included, return age of house or its built year
@@ -239,12 +239,10 @@ def isInputValid(userInput):
     
 main.draw()
 userInput = input("Please enter your choice: ") #check whether user inputs integer or not
-userInput = isInputValid(userInput)
+userInput = int(isInputValid(userInput))
 
-# TODO validate function
 
-while(userInput != '6'): # 6 can be defined at top 
-    userInput = int(userInput)
+while(userInput != 6 ): # 6 can be defined at top 
     if(userInput == 1):
         crawlItem.function()
     elif(userInput == 2):
