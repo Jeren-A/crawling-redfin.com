@@ -42,7 +42,25 @@ def test_add_asset_connection(sitemap_manager):
 
 
 @patch('builtins.print')
-def test_print_sitemap(sitemap_manager):
-    # TODO: Build a sitemap level by level then call assert_called_with on print to make sure
-    # the links/assets are getting printed in the correct order
-    pass
+def test_print_sitemap(mocked_print, sitemap_manager):
+    levels = [[sitemap_manager.get_base_url()]]
+    for i in range(random.randint(2, 4)):
+        level = []
+        for j in range(random.randint(2, 4)):
+            level.append(random_url())
+        levels.append(level)
+
+    for i in range(len(levels) - 1, 0, -1):
+        for j in range(len(levels[i])):
+            sitemap_manager.add_url_connection(
+                levels[i - 1][random.randint(0, len(levels[i - 1]) - 1)],
+                levels[i][j]
+            )
+
+    indent = random.randint(2, 4)
+    sitemap_manager.print_sitemap(indent=indent)
+    import pdb;
+    pdb.set_trace()
+    for level_num, level in enumerate(levels):
+        for link in level:
+            mocked_print.assert_called_with(((level_num * indent) * '-') + link)
