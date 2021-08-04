@@ -109,7 +109,7 @@ class Crawler(threading.Thread):    # crawls all internal links by implementing 
             self.url_lock.acquire()
             url = self.links_to_crawl.get()
             self.url_lock.release()
-            if url is None or len(self.visited_links) > 5:
+            if url is None or len(self.visited_links) > 500:
                 break
             self.url_lock.acquire()
             print('Crawling: ', url)
